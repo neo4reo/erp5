@@ -1,10 +1,4 @@
 """
- This script is part of ERP5 Web
-
- ERP5 Web is a business template of ERP5 which provides a way
- to create web sites which can display selected
- ERP5 contents through multiple custom web layouts.
-
  This script returns a list of document values (ie. objects or brains)
  which are considered as part of this section. It can be
  a list of web pages (usual case), a list of products
@@ -40,7 +34,7 @@
  SUGGESTIONS:
 
  - Prevent showing duplicate references
- 
+
  - Add documents associated to this section through 'aggregate'.
 
  - Display only the latest version and the appropriate language.
@@ -52,41 +46,48 @@ try:
   portal = container.getPortalObject()
   kw = portal.portal_catalog.getSQLCatalog().getCannonicalArgumentDict(kw)
 
-  # First find the Web Section or Web Site we belong to
+  # Try to find the Web Section or Web Site we belong to
   current_section = context.getWebSectionValue()
-
-  if all_versions is None:
-    all_versions = context.getLayoutProperty('layout_all_versions', default=False)
-  if all_languages is None:
-    all_languages = context.getLayoutProperty('layout_all_languages', default=False)
+  if current_section is None:
+    current_section = context
+  else:
+    if all_versions is None:
+      all_versions = current_section.getLayoutProperty('layout_all_versions', default=False)
+    if all_languages is None:
+      all_languages = current_section.getLayoutProperty('layout_all_languages', default=False)
 
   # Build the list of parameters
   if not language:
     language = portal.Localizer.get_selected_language()
 
-  if validation_state is None:
+  if 'portal_type' not in kw:
+    kw['portal_type'] = portal.getPortalDocumentTypeList()
+
+  if 'validation_state' not in kw:
     # XXX hardcoded validation state list.
     # Use predicate or layout property instead
-    validation_state = ('released', 'released_alive', 'published', 
-                        'published_alive', 'shared', 'shared_alive', 
-                        'public', 'validated')
-  kw['validation_state'] = validation_state
+    kw['validation_state'] = ('released', 'released_alive', 'published',
+                              'published_alive', 'shared', 'shared_alive',
+                              'public', 'validated')
 
   if 'order_by_list' not in kw:
     # XXX Do not sort by default, as it increases query time
     kw['order_by_list'] = [('int_index', 'DESC'), ('reference', 'DESC')]
 
-  if effective_date is None:
+  if 'effective_date' not in kw:
     if now is None:
       now = DateTime()
-    effective_date = ComplexQuery(
+    kw['effective_date'] = ComplexQuery(
       SimpleQuery(effective_date=None),
       SimpleQuery(effective_date=now, comparison_operator='<='),
       logical_operator='or',
     )
-  kw['effective_date'] = effective_date
 
-  if not all_versions:
+  if all_versions:
+    if not all_languages:
+      kw['language'] = language
+    return current_section.searchResults(src__=src__, **kw)
+  else:
     group_by_list = set(kw.get('group_by_list', []))
     if all_languages:
       kw['group_by_list'] = list(group_by_list.union(('reference', 'language')))
@@ -99,14 +100,10 @@ try:
     kw.setdefault('select_dict', {}).update(
       (x.replace('.', '_') + '__ext__', x)
       for x in extra_column_set if not x.endswith('__score__'))
-    return current_section.WebSection_zGetDocumentValueList(language=language,
-                                                            all_languages=all_languages,
-                                                            src__=src__,
-                                                            kw=kw)
-  else:
-    if not all_languages:
-      kw['language'] = language
-    return current_section.searchResults(src__=src__, **kw)
+    return current_section.Base_zGetDocumentValueList(language=language,
+                                                      all_languages=all_languages,
+                                                      src__=src__,
+                                                      kw=kw)
 
 except Unauthorized:
   return []
