@@ -312,6 +312,38 @@ class WebSection(Domain, DocumentExtensibleTraversableMixin):
 
       return result
 
+    security.declareProtected(Permissions.View, 'getDocumentValueList')
+    def getDocumentValueList(self, **kw):
+      """
+        Return the list of documents which belong to the
+        current section. The API is designed to
+        support additional parameters so that it is possible
+        to group documents by reference, version, language, etc.
+        or to implement filtering of documents.
+
+        This method must be implemented through a
+        portal type dependent script:
+          WebSection_getDocumentValueList
+      """
+      cache = getReadOnlyTransactionCache()
+      if cache is not None:
+        key = ('getDocumentValueList', self) + tuple(kw.items())
+        try:
+          return cache[key]
+        except KeyError:
+          pass
+
+      result = self._getTypeBasedMethod('getDocumentValueList',
+                     fallback_script_id='WebSection_getDocumentValueList')(**kw)
+
+      if cache is not None:
+        cache[key] = result
+
+      if result is not None and not kw.get('src__', 0):
+        result = [doc.__of__(self) for doc in result]
+
+      return result
+
     security.declareProtected(Permissions.View, 'getPermanentURL')
     def getPermanentURL(self, document, view=True):
       """

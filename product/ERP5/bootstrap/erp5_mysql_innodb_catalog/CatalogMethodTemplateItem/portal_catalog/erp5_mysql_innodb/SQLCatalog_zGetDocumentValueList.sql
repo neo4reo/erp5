@@ -1,7 +1,7 @@
-<dtml-let query="(_.has_key('buildSQLQuery') and buildSQLQuery or portal_catalog.buildSQLQuery)(query=portal_catalog.getSecurityQuery(**kw), **kw)"
+<dtml-let query="getattr(search_context, 'buildSQLQuery', portal_catalog.buildSQLQuery)(query=portal_catalog.getSecurityQuery(**kw), **kw)"
           selection_domain="kw.get('selection_domain', None)"
           selection_report="kw.get('selection_report', None)"
-          optimizer_switch_key_list="portal_catalog.getSQLCatalog().getOptimizerSwitchKeyList()">
+          optimizer_switch_key_list="getOptimizerSwitchKeyList()">
 
   <dtml-comment>
     Currently, there is no other choice to implement this method as an SQL catalog until SQLCatalog

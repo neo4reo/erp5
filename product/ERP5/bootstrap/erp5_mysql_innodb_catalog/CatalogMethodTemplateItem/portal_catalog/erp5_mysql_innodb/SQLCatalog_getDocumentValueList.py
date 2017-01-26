@@ -43,18 +43,10 @@ from Products.ZSQLCatalog.SQLCatalog import SimpleQuery, ComplexQuery
 from zExceptions import Unauthorized
 
 try:
-  portal = container.getPortalObject()
-  kw = portal.portal_catalog.getSQLCatalog().getCannonicalArgumentDict(kw)
-
-  # Try to find the Web Section or Web Site we belong to
-  current_section = context.getWebSectionValue()
-  if current_section is None:
-    current_section = context
-  else:
-    if all_versions is None:
-      all_versions = current_section.getLayoutProperty('layout_all_versions', default=False)
-    if all_languages is None:
-      all_languages = current_section.getLayoutProperty('layout_all_languages', default=False)
+  portal = context.getPortalObject()
+  kw = context.getCannonicalArgumentDict(kw)
+  if search_context is None:
+    search_context = context
 
   # Build the list of parameters
   if not language:
@@ -86,7 +78,7 @@ try:
   if all_versions:
     if not all_languages:
       kw['language'] = language
-    return current_section.searchResults(src__=src__, **kw)
+    return search_context.searchResults(src__=src__, **kw)
   else:
     group_by_list = set(kw.get('group_by_list', []))
     if all_languages:
@@ -100,10 +92,11 @@ try:
     kw.setdefault('select_dict', {}).update(
       (x.replace('.', '_') + '__ext__', x)
       for x in extra_column_set if not x.endswith('__score__'))
-    return current_section.Base_zGetDocumentValueList(language=language,
-                                                      all_languages=all_languages,
-                                                      src__=src__,
-                                                      kw=kw)
+    return context.SQLCatalog_zGetDocumentValueList(search_context=search_context,
+                                                    language=language,
+                                                    all_languages=all_languages,
+                                                    src__=src__,
+                                                    kw=kw)
 
 except Unauthorized:
   return []

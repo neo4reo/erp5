@@ -1,6 +1,3 @@
-# Use getDocumentValueList for ERP5 Web
-if context.getWebSectionValue() is None:
-  search_method = context.getPortalObject().portal_catalog
-else:
-  search_method = context.getDocumentValueList
+search_method = getattr(context, 'getDocumentValueList',
+                        context.getPortalObject().portal_catalog)
 return search_method(**kw)
