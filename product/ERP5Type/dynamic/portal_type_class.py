@@ -374,6 +374,12 @@ def synchronizeDynamicModules(context, force=False):
     try:
       for class_name, klass in inspect.getmembers(erp5.portal_type,
                                                   inspect.isclass):
+        for k in klass.mro():
+          if k.__module__.startswith('erp5.'):
+            for attr in ('__implements__', '__implemented__', '__provides__'):
+              if k.__dict__.get(attr) is not None:
+                delattr(k, attr)
+
         klass.restoreGhostState()
 
       # Clear accessor holders of ZODB Property Sheets and Portal Types
@@ -402,3 +408,8 @@ def synchronizeDynamicModules(context, force=False):
     cache_tool = getattr(portal, 'portal_caches', None)
     if cache_tool is not None:
       cache_tool.clearCache()
+
+    import zope.component
+    gsm = zope.component.getGlobalSiteManager()
+    gsm.adapters.changed(gsm)
+    gsm.utilities.changed(gsm)
