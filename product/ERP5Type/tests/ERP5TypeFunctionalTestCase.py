@@ -76,11 +76,15 @@ class Process(object):
     PR_SET_PDEATHSIG(signal.SIGTERM)
 
   def _exec(self, *args, **kw):
+    kw.setdefault('stderr', subprocess.PIPE)
     self.process = subprocess.Popen(preexec_fn=self.preexec_fn, *args, **kw)
 
   def quit(self):
     if hasattr(self, 'process'):
       stopProcess(self.process)
+      if self.process.stderr:
+        sys.stderr.write(
+          re.sub(r'[\x00-\x08\x0b-\x1f]+', '', self.process.stderr.read()))
       del self.process
 
 class Xvfb(Process):
