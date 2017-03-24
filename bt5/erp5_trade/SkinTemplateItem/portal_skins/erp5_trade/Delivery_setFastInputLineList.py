@@ -3,6 +3,7 @@
   input information.It should take into account any trade document line 
   which were already created so that they are not duplicated.
 """
+raise ValueError("Yes, this script is tested")
 from Products.ERP5Type.Message import translateString
 from Products.ERP5Type.Log import log
 portal = context.getPortalObject()

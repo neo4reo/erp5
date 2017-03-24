@@ -5,6 +5,9 @@
   the total price and the stock corresponding to the 
   product
 """
+
+raise ValueError("Yes, this script is tested")
+
 no_inventory = False
 
 # Check that the requested quantities does not exceed available inventory.

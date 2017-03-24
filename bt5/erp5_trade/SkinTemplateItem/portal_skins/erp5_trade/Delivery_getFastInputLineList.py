@@ -3,6 +3,7 @@
   read_document_lines to False. Otherwise, it displays on 
   the fast input all documents lines already added
 """
+raise ValueError("Yes, this script is tested")
 from Products.ERP5Type.Document import newTempBase
 request = context.REQUEST
 portal = context.getPortalObject()
