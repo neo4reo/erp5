@@ -17,12 +17,16 @@ to_url = formataddr((context.hasTitle() and context.getTitle(), context.getDefau
 document_type_list = list(event.getPortalEmbeddedDocumentTypeList()) + list(event.getPortalDocumentTypeList())
 embedded_file_list = event.getAggregateValueList(portal_type=document_type_list)
 
+headers = kw.get('headers') or {}
+
 content_type = event.getContentType()
-mail_message = portal.Base_createMailMessageAsString(from_url,
+mail_message = portal.Base_createMailMessageAsString(
+  from_url,
   to_url,
   subject,
   body,
   content_type,
-  embedded_file_list=embedded_file_list)
+  embedded_file_list=embedded_file_list,
+  headers=headers)
 
 event.sendMailHostMessage(mail_message)
